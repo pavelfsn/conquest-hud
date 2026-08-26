@@ -1,5 +1,7 @@
 package com.conquest.hud.mixin;
 
+import com.conquest.hud.core.stats.IStaminaComponent;
+import com.conquest.hud.core.stats.StatsComponentRegistry;
 import com.conquest.hud.core.stats.WeightManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -14,7 +16,12 @@ public abstract class EntityMixin {
     private void onSetSprinting(boolean sprinting, CallbackInfo ci) {
         if (sprinting && (Object) this instanceof PlayerEntity player) {
             if (!WeightManager.canSprint(player)) {
-                ci.cancel(); // Запрещаем включение бега
+                ci.cancel();
+                return;
+            }
+            IStaminaComponent stamina = StatsComponentRegistry.STAMINA.get(player);
+            if (stamina.getStamina() <= 0) {
+                ci.cancel();
             }
         }
     }

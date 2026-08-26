@@ -21,13 +21,14 @@
       "client": [
         "com.conquest.hud.client.ConquestHudClient"
       ],
-      "cardinal-components-entity": [
+      "cardinal-components": [
         "com.conquest.hud.core.stats.StatsComponentRegistry"
       ]
     },
     "custom": {
       "cardinal-components": [
-        "conquest-hud:player_stats"
+        "conquest:player_stats",
+        "conquest:stamina"
       ]
     },
 	"mixins": [
