@@ -1,7 +1,50 @@
-plugins { id 'fabric-loom' version "1.6-SNAPSHOT"; id 'maven-publish' }
-repositories { mavenCentral() }
-loom { splitEnvironmentSourceSets(); mods { "conquest-hud" { sourceSet sourceSets.main; sourceSet sourceSets.client } } }
-dependencies { minecraft "com.mojang:minecraft:${project.minecraft_version}"; mappings "net.fabricmc:yarn:1.20.1+build.10:v2"; modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"; modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"; modImplementation files("libs/cardinal-components-base-5.2.2.jar"); modImplementation files("libs/cardinal-components-entity-5.2.2.jar"); implementation "org.lwjgl:lwjgl-nanovg:${project.lwjgl_version}"; implementation "org.lwjgl:lwjgl-nanovg:${project.lwjgl_version}:natives-windows" }
-processResources { def version = project.version; inputs.property "version", version; filesMatching("fabric.mod.json") { expand "version": version } }
-tasks.withType(JavaCompile).configureEach { it.options.release = 17 }
-java { withSourcesJar(); sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
+plugins {
+    id 'fabric-loom' version "1.6-SNAPSHOT"
+    id 'maven-publish'
+}
+
+repositories {
+    mavenCentral()
+}
+
+loom {
+    splitEnvironmentSourceSets()
+    mods {
+        "conquest-hud" {
+            sourceSet sourceSets.main
+            sourceSet sourceSets.client
+        }
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:1.20.1+build.10:v2"
+
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+    modImplementation files("libs/cardinal-components-base-5.2.2.jar")
+    modImplementation files("libs/cardinal-components-entity-5.2.2.jar")
+
+    implementation "org.lwjgl:lwjgl-nanovg:${project.lwjgl_version}"
+    implementation "org.lwjgl:lwjgl-nanovg:${project.lwjgl_version}:natives-windows"
+}
+
+processResources {
+    def version = project.version
+    inputs.property "version", version
+    filesMatching("fabric.mod.json") {
+        expand "version": version
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 17
+}
+
+java {
+    withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}

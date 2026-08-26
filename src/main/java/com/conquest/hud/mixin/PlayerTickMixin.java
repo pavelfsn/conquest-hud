@@ -18,7 +18,7 @@ public abstract class PlayerTickMixin {
         if (player.getWorld().isClient()) return;
 
         if (player.age % 10 == 0) {
-            WeightManager.updateWeightEffects(player);
+            WeightManager.updateServerWeight(player); // Выполняет полный пересчет и синхронизацию
         }
 
         IStaminaComponent staminaComp = StatsComponentRegistry.STAMINA.get(player);

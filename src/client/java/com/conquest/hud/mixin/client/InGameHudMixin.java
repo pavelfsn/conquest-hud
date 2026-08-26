@@ -22,4 +22,10 @@ public abstract class InGameHudMixin {
         // Отключаем ванильную полосу опыта
         ci.cancel();
     }
+
+    @Inject(method = "renderHotbar", at = @At("HEAD"), cancellable = true)
+    private void hideHotbar(float tickDelta, DrawContext context, CallbackInfo ci) {
+        // Отключаем ванильный хотбар
+        ci.cancel();
+    }
 }

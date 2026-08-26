@@ -1,0 +1,51 @@
+package com.conquest.hud.client.gui;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import net.fabricmc.loader.api.FabricLoader;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+public class WindowPositionConfig {
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final File FILE = FabricLoader.getInstance().getConfigDir().resolve("conquest_ui_pos.json").toFile();
+    public static Map<String, int[]> positions = new HashMap<>();
+
+    public static void load() {
+        if (FILE.exists()) {
+            try (FileReader reader = new FileReader(FILE)) {
+                java.lang.reflect.Type type = new com.google.gson.reflect.TypeToken<Map<String, int[]>>(){}.getType();
+                positions = GSON.fromJson(reader, type);
+                if (positions == null) positions = new HashMap<>();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        // Дефолтные позиции (Экипировка по центру, Инвентарь справа)
+        positions.putIfAbsent("equipment", new int[]{400, 100});
+        positions.putIfAbsent("inventory", new int[]{600, 100});
+        positions.putIfAbsent("stats", new int[]{200, 100});
+    }
+
+    public static void save() {
+        try (FileWriter writer = new FileWriter(FILE)) {
+            GSON.toJson(positions, writer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static int[] get(String window) {
+        return positions.getOrDefault(window, new int[]{100, 100});
+    }
+
+    public static void set(String window, int x, int y) {
+        positions.put(window, new int[]{x, y});
+        save();
+    }
+}

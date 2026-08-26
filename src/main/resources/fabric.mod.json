@@ -28,7 +28,8 @@
     "custom": {
       "cardinal-components": [
         "conquest:player_stats",
-        "conquest:stamina"
+        "conquest:stamina",
+        "conquest:player_weight"
       ]
     },
 	"mixins": [
