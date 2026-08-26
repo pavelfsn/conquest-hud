@@ -1,0 +1,13 @@
+﻿{
+  "entities": ["minecraft:player"],
+  "slots": [
+    "head/mask",
+    "chest/backpack",
+    "chest/jacket",
+    "chest/rig",
+    "hand/gloves",
+    "weapon/pistol",
+    "weapon/primary",
+    "weapon/secondary"
+  ]
+}
