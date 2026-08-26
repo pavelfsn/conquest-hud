@@ -3,8 +3,19 @@ plugins {
     id 'maven-publish'
 }
 
+version = project.version
+group = project.group
+
 repositories {
     mavenCentral()
+    // Единый стабильный репозиторий Modrinth в обход серверов Ladysnake и Shedaniel
+    maven {
+        name = "Modrinth"
+        url = "https://api.modrinth.com/maven"
+        content {
+            includeGroup "maven.modrinth"
+        }
+    }
 }
 
 loom {
@@ -19,23 +30,30 @@ loom {
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings "net.fabricmc:yarn:1.20.1+build.10:v2"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
+    // Читаем отдельные модули CCA из папки libs
     modImplementation files("libs/cardinal-components-base-5.2.2.jar")
     modImplementation files("libs/cardinal-components-entity-5.2.2.jar")
 
+    // Остальное грузим через стабильный Modrinth Maven
+    modImplementation "maven.modrinth:trinkets:3.7.1"
+    modApi "maven.modrinth:cloth-config:11.1.118+fabric"
+    modImplementation "maven.modrinth:modmenu:7.2.2"
+
+    // NanoVG
     implementation "org.lwjgl:lwjgl-nanovg:${project.lwjgl_version}"
     implementation "org.lwjgl:lwjgl-nanovg:${project.lwjgl_version}:natives-windows"
 }
 
 processResources {
-    def version = project.version
-    inputs.property "version", version
+    def version_property = project.version
+    inputs.property "version", version_property
     filesMatching("fabric.mod.json") {
-        expand "version": version
+        expand "version": version_property
     }
 }
 

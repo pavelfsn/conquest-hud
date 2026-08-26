@@ -26,7 +26,6 @@ public class WindowPositionConfig {
                 e.printStackTrace();
             }
         }
-        // Дефолтные позиции (Экипировка по центру, Инвентарь справа)
         positions.putIfAbsent("equipment", new int[]{400, 100});
         positions.putIfAbsent("inventory", new int[]{600, 100});
         positions.putIfAbsent("stats", new int[]{200, 100});
@@ -46,6 +45,6 @@ public class WindowPositionConfig {
 
     public static void set(String window, int x, int y) {
         positions.put(window, new int[]{x, y});
-        save();
+        // Больше не сохраняем на каждый чих мыши! Сохранение происходит только при закрытии.
     }
 }

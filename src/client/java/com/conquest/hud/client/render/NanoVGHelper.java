@@ -54,4 +54,10 @@ public class NanoVGHelper {
         NanoVG.nvgFillColor(vg, color);
         NanoVG.nvgFill(vg);
     }
+    public void cleanup() {
+        if (this.vg != 0) {
+            org.lwjgl.nanovg.NanoVGGL3.nvgDelete(this.vg);
+            this.vg = 0;
+        }
+    }
 }

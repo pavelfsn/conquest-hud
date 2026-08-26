@@ -6,7 +6,9 @@ import com.conquest.hud.core.stats.IPlayerStats;
 import com.conquest.hud.core.stats.StatsComponentRegistry;
 import com.conquest.hud.core.stats.WeightManager;
 import com.conquest.hud.mixin.SlotAccessor;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -16,7 +18,6 @@ import net.minecraft.text.Text;
 public class ConquestInventoryScreen extends HandledScreen<ConquestScreenHandler> {
     public static int activeTab = 0; // 0 - Инвентарь, 1 - Экипировка, 2 - Оба
 
-    // Состояние перетаскивания окон
     private boolean draggingEquipment = false;
     private boolean draggingInventory = false;
     private int dragOffsetX, dragOffsetY;
@@ -25,6 +26,18 @@ public class ConquestInventoryScreen extends HandledScreen<ConquestScreenHandler
         super(handler, inventory, title);
         this.backgroundWidth = 800;
         this.backgroundHeight = 600;
+    }
+
+    @Override
+    public boolean shouldPause() {
+        return false;
+    }
+
+    @Override
+    public void close() {
+        // Сохраняем позиции окон на диск строго в момент закрытия (избегаем фризов при перетаскивании)
+        WindowPositionConfig.save();
+        super.close();
     }
 
     @Override
@@ -42,7 +55,6 @@ public class ConquestInventoryScreen extends HandledScreen<ConquestScreenHandler
         int[] invPos = WindowPositionConfig.get("inventory");
         int[] eqPos = WindowPositionConfig.get("equipment");
 
-        // Слоты 0-35 (Инвентарь и Хотбар)
         for (int i = 0; i < 36; i++) {
             Slot slot = this.handler.slots.get(i);
             if (activeTab == 0 || activeTab == 2) {
@@ -50,7 +62,7 @@ public class ConquestInventoryScreen extends HandledScreen<ConquestScreenHandler
                     int row = i / 9;
                     int col = i % 9;
                     ((SlotAccessor) slot).setX(invPos[0] + 10 + col * cellSize + 2);
-                    ((SlotAccessor) slot).setY(invPos[0] >= 0 ? invPos[1] + 30 + row * cellSize + 2 : 112);
+                    ((SlotAccessor) slot).setY(invPos[1] + 30 + row * cellSize + 2);
                 } else {
                     int col = i - 27;
                     ((SlotAccessor) slot).setX(invPos[0] + 10 + col * cellSize + 2);
@@ -61,8 +73,20 @@ public class ConquestInventoryScreen extends HandledScreen<ConquestScreenHandler
                 ((SlotAccessor) slot).setY(-9999);
             }
         }
+        // Позиционирование слотов Trinkets
+        for (int i = 40; i < this.handler.slots.size(); i++) {
+            Slot slot = this.handler.slots.get(i);
+            if (activeTab == 1 || activeTab == 2) {
+                int col = (i - 40) % 2;
+                int row = (i - 40) / 2;
+                ((SlotAccessor) slot).setX(eqPos[0] + 60 + col * cellSize + 2);
+                ((SlotAccessor) slot).setY(eqPos[1] + 100 + row * cellSize + 2);
+            } else {
+                ((SlotAccessor) slot).setX(-9999);
+                ((SlotAccessor) slot).setY(-9999);
+            }
+        }
 
-        // Слоты 36-39 (Экипировка)
         for (int i = 36; i < 40; i++) {
             Slot slot = this.handler.slots.get(i);
             if (activeTab == 1 || activeTab == 2) {
@@ -75,38 +99,70 @@ public class ConquestInventoryScreen extends HandledScreen<ConquestScreenHandler
         }
     }
 
+    private Slot getHoveredSlot(double mouseX, double mouseY) {
+        for (Slot slot : this.handler.slots) {
+            // Наши слоты визуально начинаются с x-2, y-2 и имеют размер 36x36 пикселей.
+            // Математически проверяем, находится ли курсор внутри этого квадрата.
+            if (mouseX >= slot.x - 2 && mouseX <= slot.x + 34 && mouseY >= slot.y - 2 && mouseY <= slot.y + 34) {
+                return slot;
+            }
+        }
+        return null;
+    }
+
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) {
             int[] invPos = WindowPositionConfig.get("inventory");
             int[] eqPos = WindowPositionConfig.get("equipment");
 
-            // Проверка клика по кнопке закрытия Инвентаря [X]
+            // Кнопка закрытия Инвентаря [X]
             if ((activeTab == 0 || activeTab == 2) && mouseX >= invPos[0] + 322 && mouseX <= invPos[0] + 340 && mouseY >= invPos[1] + 4 && mouseY <= invPos[1] + 20) {
                 if (activeTab == 2) activeTab = 1; else { this.close(); return true; }
                 updateSlotPositions();
                 return true;
             }
-            // Проверка клика по кнопке закрытия Экипировки [X]
+            // Кнопка закрытия Экипировки [X]
             if ((activeTab == 1 || activeTab == 2) && mouseX >= eqPos[0] + 182 && mouseX <= eqPos[0] + 200 && mouseY >= eqPos[1] + 4 && mouseY <= eqPos[1] + 20) {
                 if (activeTab == 2) activeTab = 0; else { this.close(); return true; }
                 updateSlotPositions();
                 return true;
             }
 
-            // Захват шапки Инвентаря для перетаскивания
+            // Кнопка перехода в Креатив (только для OP)
+            if (this.client != null && this.client.player != null && this.client.player.hasPermissionLevel(2)) {
+                if ((activeTab == 0 || activeTab == 2) && mouseX >= invPos[0] + 302 && mouseX <= invPos[0] + 318 && mouseY >= invPos[1] + 4 && mouseY <= invPos[1] + 20) {
+                    MinecraftClient.getInstance().setScreen(new CreativeInventoryScreen(this.client.player, this.client.player.clientWorld.getEnabledFeatures(), this.client.options.getOperatorItemsTab().getValue()));
+                    return true;
+                }
+            }
+
+            // Захват шапки Инвентаря
             if ((activeTab == 0 || activeTab == 2) && mouseX >= invPos[0] && mouseX <= invPos[0] + 344 && mouseY >= invPos[1] && mouseY <= invPos[1] + 24) {
                 draggingInventory = true;
                 dragOffsetX = (int)mouseX - invPos[0];
                 dragOffsetY = (int)mouseY - invPos[1];
                 return true;
             }
-            // Захват шапки Экипировки для перетаскивания
+            // Захват шапки Экипировки
             if ((activeTab == 1 || activeTab == 2) && mouseX >= eqPos[0] && mouseX <= eqPos[0] + 200 && mouseY >= eqPos[1] && mouseY <= eqPos[1] + 24) {
                 draggingEquipment = true;
                 dragOffsetX = (int)mouseX - eqPos[0];
                 dragOffsetY = (int)mouseY - eqPos[1];
                 return true;
+            }
+            // Блокировка кликов "насквозь" по фону Инвентаря
+            if ((activeTab == 0 || activeTab == 2) && mouseX >= invPos[0] && mouseX <= invPos[0] + 344 && mouseY >= invPos[1] && mouseY <= invPos[1] + 210) {
+                if (this.getHoveredSlot(mouseX, mouseY) == null) {
+                    return true;
+                }
+            }
+
+            // Блокировка кликов "насквозь" по фону Экипировки
+            if ((activeTab == 1 || activeTab == 2) && mouseX >= eqPos[0] && mouseX <= eqPos[0] + 200 && mouseY >= eqPos[1] && mouseY <= eqPos[1] + 250) {
+                if (this.getHoveredSlot(mouseX, mouseY) == null) {
+                    return true;
+                }
             }
         }
         return super.mouseClicked(mouseX, mouseY, button);
@@ -115,9 +171,6 @@ public class ConquestInventoryScreen extends HandledScreen<ConquestScreenHandler
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         if (button == 0) {
-            if (draggingInventory || draggingEquipment) {
-                WindowPositionConfig.save();
-            }
             draggingInventory = false;
             draggingEquipment = false;
         }
@@ -126,21 +179,29 @@ public class ConquestInventoryScreen extends HandledScreen<ConquestScreenHandler
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+        int maxW = this.width - 50;
+        int maxH = this.height - 50;
+
         if (draggingInventory) {
-            int newX = (int)mouseX - dragOffsetX;
-            int newY = (int)mouseY - dragOffsetY;
+            int newX = Math.max(0, Math.min((int)mouseX - dragOffsetX, maxW));
+            int newY = Math.max(0, Math.min((int)mouseY - dragOffsetY, maxH));
             WindowPositionConfig.set("inventory", newX, newY);
             updateSlotPositions();
             return true;
         }
         if (draggingEquipment) {
-            int newX = (int)mouseX - dragOffsetX;
-            int newY = (int)mouseY - dragOffsetY;
+            int newX = Math.max(0, Math.min((int)mouseX - dragOffsetX, maxW));
+            int newY = Math.max(0, Math.min((int)mouseY - dragOffsetY, maxH));
             WindowPositionConfig.set("equipment", newX, newY);
             updateSlotPositions();
             return true;
         }
         return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+    }
+
+    @Override
+    public void renderBackground(DrawContext context) {
+        // Оставляем пустым для отключения серого фона
     }
 
     @Override
@@ -153,10 +214,9 @@ public class ConquestInventoryScreen extends HandledScreen<ConquestScreenHandler
 
         nvg.beginFrame(screenWidth, screenHeight);
 
-        // 1. Окно Инвентаря
         if (activeTab == 0 || activeTab == 2) {
-            nvg.drawRoundedRect(invPos[0], invPos[1], 344, 210, 0.0f, 0x0D0D0D, 0.95f); // Фон
-            nvg.drawRoundedRect(invPos[0], invPos[1], 344, 24, 0.0f, 0x1F1F1F, 1.0f);   // Шапка
+            nvg.drawRoundedRect(invPos[0], invPos[1], 344, 210, 0.0f, 0x0D0D0D, 0.95f);
+            nvg.drawRoundedRect(invPos[0], invPos[1], 344, 24, 0.0f, 0x1F1F1F, 1.0f);
 
             for (int i = 0; i < 36; i++) {
                 Slot slot = this.handler.slots.get(i);
@@ -165,13 +225,11 @@ public class ConquestInventoryScreen extends HandledScreen<ConquestScreenHandler
             }
         }
 
-        // 2. Окно Экипировки и Статов
         if (activeTab == 1 || activeTab == 2) {
-            nvg.drawRoundedRect(eqPos[0], eqPos[1], 200, 250, 0.0f, 0x0D0D0D, 0.95f); // Фон
-            nvg.drawRoundedRect(eqPos[0], eqPos[1], 200, 24, 0.0f, 0x1F1F1F, 1.0f);   // Шапка
+            nvg.drawRoundedRect(eqPos[0], eqPos[1], 200, 250, 0.0f, 0x0D0D0D, 0.95f);
+            nvg.drawRoundedRect(eqPos[0], eqPos[1], 200, 24, 0.0f, 0x1F1F1F, 1.0f);
 
-            // Слоты брони
-            for (int i = 36; i < 40; i++) {
+            for (int i = 36; i < this.handler.slots.size(); i++) {
                 Slot slot = this.handler.slots.get(i);
                 nvg.drawRoundedRect(slot.x - 2, slot.y - 2, 36, 36, 0.0f, 0x1A1A1A, 0.8f);
                 drawBorder(nvg, slot.x - 2, slot.y - 2, 36, 36);
@@ -190,31 +248,17 @@ public class ConquestInventoryScreen extends HandledScreen<ConquestScreenHandler
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context);
-
-        net.minecraft.item.ItemStack cursorStack = this.handler.getCursorStack();
-        this.handler.setCursorStack(net.minecraft.item.ItemStack.EMPTY);
-
         super.render(context, mouseX, mouseY, delta);
-
-        this.handler.setCursorStack(cursorStack);
-
-        if (!cursorStack.isEmpty()) {
-            context.getMatrices().push();
-            context.getMatrices().translate(mouseX, mouseY, 232.0f);
-            context.getMatrices().scale(2.0f, 2.0f, 1.0f);
-            context.drawItem(cursorStack, -8, -8);
-            context.drawItemInSlot(this.textRenderer, cursorStack, -8, -8);
-            context.getMatrices().pop();
-        }
-
-        this.drawMouseoverTooltip(context, mouseX, mouseY);
 
         int[] invPos = WindowPositionConfig.get("inventory");
         int[] eqPos = WindowPositionConfig.get("equipment");
 
         if (activeTab == 0 || activeTab == 2) {
             context.drawText(this.textRenderer, "Инвентарь [I]", invPos[0] + 8, invPos[1] + 8, 0xFFFFFF, false);
+
+            if (this.client != null && this.client.player != null && this.client.player.hasPermissionLevel(2)) {
+                context.drawText(this.textRenderer, "[C]", invPos[0] + 304, invPos[1] + 7, 0x55FF55, false);
+            }
             context.drawText(this.textRenderer, "X", invPos[0] + 328, invPos[1] + 7, 0xAAAAAA, false);
         }
 
@@ -222,7 +266,6 @@ public class ConquestInventoryScreen extends HandledScreen<ConquestScreenHandler
             context.drawText(this.textRenderer, "Экипировка", eqPos[0] + 8, eqPos[1] + 8, 0xFFFFFF, false);
             context.drawText(this.textRenderer, "X", eqPos[0] + 188, eqPos[1] + 7, 0xAAAAAA, false);
 
-            // Отрисовка блока статов прямо в окне экипировки
             PlayerEntity player = this.client.player;
             if (player != null) {
                 IPlayerStats stats = StatsComponentRegistry.PLAYER_STATS.get(player);

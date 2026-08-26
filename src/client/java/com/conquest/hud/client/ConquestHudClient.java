@@ -14,11 +14,15 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import com.conquest.hud.core.inventory.ConquestScreenHandler;
 import com.conquest.hud.client.gui.ConquestInventoryScreen;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 
 public class ConquestHudClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         ConquestKeybinds.register();
+        ClientLifecycleEvents.CLIENT_STOPPING.register(minecraftClient -> {
+            NanoVGHelper.INSTANCE.cleanup();
+        });
         WindowPositionConfig.load();
         HandledScreens.register(ConquestScreenHandler.TYPE, ConquestInventoryScreen::new);
         HudRenderCallback.EVENT.register((drawContext, tickDelta) -> {

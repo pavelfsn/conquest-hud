@@ -8,6 +8,9 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.screen.slot.Slot;
+import dev.emi.trinkets.SurvivalTrinketSlot;
+import dev.emi.trinkets.api.TrinketsApi;
+import java.util.Map;
 
 public class ConquestScreenHandler extends ScreenHandler {
     public static ScreenHandlerType<ConquestScreenHandler> TYPE;
@@ -43,6 +46,23 @@ public class ConquestScreenHandler extends ScreenHandler {
                 }
             });
         }
+        // Инициализация слотов Trinkets (индексы 40+)
+        TrinketsApi.getTrinketComponent(playerInventory.player).ifPresent(trinkets -> {
+            Map<String, dev.emi.trinkets.api.SlotGroup> groups = TrinketsApi.getEntitySlots(playerInventory.player.getType());
+            trinkets.getInventory().forEach((groupId, groupMap) -> {
+                dev.emi.trinkets.api.SlotGroup slotGroup = groups.get(groupId);
+                if (slotGroup != null) {
+                    groupMap.forEach((slotId, trinketInv) -> {
+                        dev.emi.trinkets.api.SlotType slotType = slotGroup.getSlots().get(slotId);
+                        if (slotType != null) {
+                            for (int i = 0; i < trinketInv.size(); i++) {
+                                this.addSlot(new SurvivalTrinketSlot(trinketInv, i, -9999, -9999, slotGroup, slotType, i, true));
+                            }
+                        }
+                    });
+                }
+            });
+        });
     }
 
     @Override
@@ -54,30 +74,28 @@ public class ConquestScreenHandler extends ScreenHandler {
             ItemStack originalStack = slot.getStack();
             newStack = originalStack.copy();
 
-            // Индексы слотов:
-            // 0-26: Рюкзак
-            // 27-35: Хотбар
-            // 36-39: Экипировка (Броня)
+            // Динамический расчет (броня всегда последние 4 слота инвентаря игрока)
+            int hotbarStart = 27;
+            int hotbarEnd = 36;
+            int armorStart = 36;
+            int armorEnd = 40;
 
-            if (invSlot < 36) { // Если клик по рюкзаку или хотбару
-                // Пытаемся надеть броню
+            if (invSlot < armorStart) {
                 if (originalStack.getItem() instanceof net.minecraft.item.ArmorItem) {
-                    if (!this.insertItem(originalStack, 36, 40, false)) {
+                    if (!this.insertItem(originalStack, armorStart, armorEnd, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                } else if (invSlot < hotbarStart) {
+                    if (!this.insertItem(originalStack, hotbarStart, hotbarEnd, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                } else if (invSlot >= hotbarStart && invSlot < hotbarEnd) {
+                    if (!this.insertItem(originalStack, 0, hotbarStart, false)) {
                         return ItemStack.EMPTY;
                     }
                 }
-                // Иначе перекидываем между рюкзаком и хотбаром
-                else if (invSlot < 27) {
-                    if (!this.insertItem(originalStack, 27, 36, false)) {
-                        return ItemStack.EMPTY;
-                    }
-                } else if (invSlot >= 27 && invSlot < 36) {
-                    if (!this.insertItem(originalStack, 0, 27, false)) {
-                        return ItemStack.EMPTY;
-                    }
-                }
-            } else { // Если клик по броне (снимаем её)
-                if (!this.insertItem(originalStack, 0, 36, false)) {
+            } else {
+                if (!this.insertItem(originalStack, 0, armorStart, false)) {
                     return ItemStack.EMPTY;
                 }
             }

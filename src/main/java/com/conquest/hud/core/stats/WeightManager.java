@@ -5,6 +5,9 @@ import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.player.PlayerEntity;
+import dev.emi.trinkets.api.TrinketComponent;
+import dev.emi.trinkets.api.TrinketsApi;
+import java.util.Optional;
 
 import java.util.UUID;
 
@@ -30,19 +33,30 @@ public class WeightManager {
     public static void updateServerWeight(PlayerEntity player) {
         if (player.getWorld().isClient()) return;
 
-        float totalWeight = 0.0f;
+        float[] totalWeight = {0.0f}; // Массив для доступа изнутри лямбды Trinkets
+
+        // 1. Ванильный инвентарь (рюкзак, броня, руки)
         for (int i = 0; i < player.getInventory().size(); i++) {
             net.minecraft.item.ItemStack stack = player.getInventory().getStack(i);
             if (!stack.isEmpty()) {
-                totalWeight += ItemWeightConfig.getWeight(stack) * stack.getCount();
+                totalWeight[0] += ItemWeightConfig.getWeight(stack) * stack.getCount();
             }
+        }
+
+        // 2. Слоты Trinkets
+        Optional<TrinketComponent> trinkets = TrinketsApi.getTrinketComponent(player);
+        if (trinkets.isPresent()) {
+            trinkets.get().getAllEquipped().forEach(pair -> {
+                net.minecraft.item.ItemStack trinketStack = pair.getRight();
+                if (!trinketStack.isEmpty()) {
+                    totalWeight[0] += ItemWeightConfig.getWeight(trinketStack) * trinketStack.getCount();
+                }
+            });
         }
 
         IPlayerWeightComponent weightComp = StatsComponentRegistry.WEIGHT.get(player);
         float oldWeight = weightComp.getCurrentWeight();
-
-        // Округляем до десятых, чтобы не спамить сетевыми пакетами каждый тик
-        float roundedWeight = Math.round(totalWeight * 10.0f) / 10.0f;
+        float roundedWeight = Math.round(totalWeight[0] * 10.0f) / 10.0f;
 
         if (oldWeight != roundedWeight) {
             weightComp.setCurrentWeight(roundedWeight);
@@ -58,7 +72,6 @@ public class WeightManager {
 
             if (roundedWeight > maxWeight) {
                 float overweightRatio = (roundedWeight - maxWeight) / maxWeight;
-                // Снижение скорости максимум на 60%
                 float penalty = Math.min(overweightRatio * 0.5f, 0.6f);
 
                 EntityAttributeModifier modifier = new EntityAttributeModifier(
