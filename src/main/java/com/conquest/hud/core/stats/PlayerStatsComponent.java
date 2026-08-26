@@ -28,6 +28,7 @@ public class PlayerStatsComponent implements IPlayerStats {
     @Override public void setIntellect(int value) { this.intellect = value; sync(); }
 
     private void sync() {
+        StatAttributeManager.updateAttributes(this.provider, this);
         StatsComponentRegistry.PLAYER_STATS.sync(this.provider);
     }
 
@@ -38,6 +39,8 @@ public class PlayerStatsComponent implements IPlayerStats {
         this.vitality = tag.getInt("vitality");
         this.metabolism = tag.getInt("metabolism");
         this.intellect = tag.getInt("intellect");
+
+        StatAttributeManager.updateAttributes(this.provider, this);
     }
 
     @Override
