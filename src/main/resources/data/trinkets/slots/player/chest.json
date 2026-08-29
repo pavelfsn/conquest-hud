@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "slots": [
+    "backpack",
+    "rig",
+    "armor",
+    "suit",
+    "jacket"
+  ]
+}

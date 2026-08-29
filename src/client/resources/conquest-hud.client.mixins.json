@@ -5,8 +5,11 @@
   "client": [
     "InGameHudMixin",
     "MinecraftClientMixin",
+    "MinecraftClientCreativeMixin",
     "HandledScreenMixin",
-    "MinecraftClientCreativeMixin"
+    "SlotMixin",
+    "KeyBindingMixin",
+    "ItemStackMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -17,8 +17,11 @@ public class StaminaComponent implements IStaminaComponent {
 
     @Override
     public void setStamina(float value) {
-        this.stamina = Math.max(0, Math.min(value, this.maxStamina));
-        StatsComponentRegistry.STAMINA.sync(this.provider);
+        float clamped = Math.max(0, Math.min(value, this.maxStamina));
+        if (Math.abs(this.stamina - clamped) > 0.001f) {
+            this.stamina = clamped;
+            StatsComponentRegistry.STAMINA.sync(this.provider);
+        }
     }
 
     public void setStaminaRaw(float value) {

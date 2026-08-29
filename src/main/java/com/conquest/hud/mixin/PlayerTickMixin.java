@@ -1,9 +1,7 @@
 package com.conquest.hud.mixin;
 
 import com.conquest.hud.core.stats.IStaminaComponent;
-import com.conquest.hud.core.stats.StaminaComponent;
 import com.conquest.hud.core.stats.StatsComponentRegistry;
-import com.conquest.hud.core.stats.WeightManager;
 import net.minecraft.entity.player.PlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -17,11 +15,9 @@ public abstract class PlayerTickMixin {
         PlayerEntity player = (PlayerEntity) (Object) this;
         if (player.getWorld().isClient()) return;
 
-        if (player.age % 10 == 0) {
-            WeightManager.updateServerWeight(player); // Выполняет полный пересчет и синхронизацию
-        }
-
         IStaminaComponent staminaComp = StatsComponentRegistry.STAMINA.get(player);
+        if (staminaComp == null) return;
+
         float currentStamina = staminaComp.getStamina();
         float newStamina = currentStamina;
 
@@ -31,11 +27,10 @@ public abstract class PlayerTickMixin {
             newStamina += 0.3f;
         }
 
-        if (currentStamina != newStamina) {
-            ((StaminaComponent) staminaComp).setStaminaRaw(newStamina);
-            if ((int) currentStamina != (int) newStamina) {
-                StatsComponentRegistry.STAMINA.sync(player);
-            }
+        newStamina = Math.max(0, Math.min(newStamina, staminaComp.getMaxStamina()));
+
+        if (Math.abs(currentStamina - newStamina) > 0.001f) {
+            staminaComp.setStamina(newStamina);
         }
     }
 }

@@ -19,6 +19,7 @@ public class PlayerWeightComponent implements IPlayerWeightComponent {
     @Override
     public void setCurrentWeight(float weight) {
         this.currentWeight = weight;
+        StatsComponentRegistry.WEIGHT.sync(this.player); // Фикс рассинхрона
     }
 
     @Override

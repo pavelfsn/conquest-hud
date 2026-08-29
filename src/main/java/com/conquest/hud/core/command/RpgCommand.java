@@ -25,6 +25,10 @@ public class RpgCommand {
                                                 String stat = StringArgumentType.getString(context, "stat").toLowerCase();
                                                 int value = IntegerArgumentType.getInteger(context, "value");
                                                 IPlayerStats stats = StatsComponentRegistry.PLAYER_STATS.get(player);
+                                                if (stats == null) {
+                                                    context.getSource().sendError(Text.literal("Stats component not available"));
+                                                    return 0;
+                                                }
 
                                                 switch (stat) {
                                                     case "strength" -> stats.setStrength(value);
@@ -37,7 +41,6 @@ public class RpgCommand {
                                                         return 0;
                                                     }
                                                 }
-
                                                 ModLogger.info("STATS", "Admin changed " + stat + " to " + value + " for " + player.getName().getString());
                                                 context.getSource().sendFeedback(() -> Text.literal("Stat " + stat + " set to " + value), false);
                                                 return 1;

@@ -15,19 +15,16 @@ public abstract class PlayerEntityMixin {
         if (originalExperience <= 0) return originalExperience;
 
         PlayerEntity player = (PlayerEntity) (Object) this;
-
-        // Обработка только на стороне сервера
         if (player.getWorld().isClient()) return originalExperience;
 
         IPlayerStats stats = StatsComponentRegistry.PLAYER_STATS.get(player);
-        int intellect = stats.getIntellect();
+        if (stats == null) return originalExperience;
 
+        int intellect = stats.getIntellect();
         if (intellect > 0) {
-            // Формула: +5% опыта за каждую единицу Интеллекта
             float multiplier = 1.0f + (intellect * 0.05f);
             return (int) Math.ceil(originalExperience * multiplier);
         }
-
         return originalExperience;
     }
 }

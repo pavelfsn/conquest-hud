@@ -15,7 +15,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(HandledScreen.class)
 public abstract class HandledScreenMixin {
-
     @Shadow protected abstract boolean isPointWithinBounds(int x, int y, int width, int height, double pointX, double pointY);
 
     @Inject(method = "drawSlot", at = @At("HEAD"))
@@ -23,7 +22,7 @@ public abstract class HandledScreenMixin {
         if ((Object) this instanceof ConquestInventoryScreen) {
             context.getMatrices().push();
             context.getMatrices().translate(slot.x, slot.y, 0);
-            context.getMatrices().scale(2.0f, 2.0f, 1.0f);
+            context.getMatrices().scale(2.0f, 2.0f, 1.0f); // Изменено: масштаб 16 * 2 = 32
             context.getMatrices().translate(-slot.x, -slot.y, 0);
         }
     }
@@ -38,16 +37,16 @@ public abstract class HandledScreenMixin {
     @Inject(method = "isPointOverSlot", at = @At("HEAD"), cancellable = true)
     private void onIsPointOverSlot(Slot slot, double pointX, double pointY, CallbackInfoReturnable<Boolean> cir) {
         if ((Object) this instanceof ConquestInventoryScreen) {
+            // Изменено: хитбокс 32x32
             cir.setReturnValue(this.isPointWithinBounds(slot.x, slot.y, 32, 32, pointX, pointY));
         }
     }
 
-    // Перехват статического метода подсветки при наведении
     @Inject(method = "drawSlotHighlight", at = @At("HEAD"), cancellable = true)
     private static void onDrawSlotHighlight(DrawContext context, int x, int y, int z, CallbackInfo ci) {
         if (MinecraftClient.getInstance().currentScreen instanceof ConquestInventoryScreen) {
-            // Расширяем стандартный хайлайт на ячейку 36x36
-            context.fillGradient(RenderLayer.getGuiOverlay(), x - 2, y - 2, x + 34, y + 34, -2130706433, -2130706433, z);
+            // Изменено: размер заливки 32x32
+            context.fillGradient(RenderLayer.getGuiOverlay(), x, y, x + 32, y + 32, 0x33FFFFFF, 0x33FFFFFF, z);
             ci.cancel();
         }
     }

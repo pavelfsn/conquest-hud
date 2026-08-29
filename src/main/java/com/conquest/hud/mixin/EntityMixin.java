@@ -20,7 +20,7 @@ public abstract class EntityMixin {
                 return;
             }
             IStaminaComponent stamina = StatsComponentRegistry.STAMINA.get(player);
-            if (stamina.getStamina() <= 0) {
+            if (stamina == null || stamina.getStamina() <= 0) {
                 ci.cancel();
             }
         }

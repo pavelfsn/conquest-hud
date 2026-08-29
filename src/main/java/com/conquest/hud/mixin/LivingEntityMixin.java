@@ -16,21 +16,18 @@ public abstract class LivingEntityMixin {
         if (originalHeal <= 0) return originalHeal;
 
         LivingEntity entity = (LivingEntity) (Object) this;
-
-        // Отсекаем мобов и выполнение на клиенте
         if (entity.getWorld().isClient() || !(entity instanceof PlayerEntity player)) {
             return originalHeal;
         }
 
         IPlayerStats stats = StatsComponentRegistry.PLAYER_STATS.get(player);
-        int metabolism = stats.getMetabolism();
+        if (stats == null) return originalHeal;
 
+        int metabolism = stats.getMetabolism();
         if (metabolism > 0) {
-            // Формула: +2% к эффективности лечения за каждый поинт Метаболизма
             float multiplier = 1.0f + (metabolism * 0.02f);
             return originalHeal * multiplier;
         }
-
         return originalHeal;
     }
 }

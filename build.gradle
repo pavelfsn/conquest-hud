@@ -8,7 +8,6 @@ group = project.group
 
 repositories {
     mavenCentral()
-    // Единый стабильный репозиторий Modrinth в обход серверов Ladysnake и Shedaniel
     maven {
         name = "Modrinth"
         url = "https://api.modrinth.com/maven"
@@ -16,6 +15,8 @@ repositories {
             includeGroup "maven.modrinth"
         }
     }
+    // Репозиторий для owo-lib
+    maven { url "https://maven.wispforest.io" }
 }
 
 loom {
@@ -35,18 +36,22 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
-    // Читаем отдельные модули CCA из папки libs
     modImplementation files("libs/cardinal-components-base-5.2.2.jar")
     modImplementation files("libs/cardinal-components-entity-5.2.2.jar")
 
-    // Остальное грузим через стабильный Modrinth Maven
     modImplementation "maven.modrinth:trinkets:3.7.1"
     modApi "maven.modrinth:cloth-config:11.1.118+fabric"
     modImplementation "maven.modrinth:modmenu:7.2.2"
 
-    // NanoVG
     implementation "org.lwjgl:lwjgl-nanovg:${project.lwjgl_version}"
     implementation "org.lwjgl:lwjgl-nanovg:${project.lwjgl_version}:natives-windows"
+
+    // Интеграция строгой сетевой синхронизации
+    modImplementation "maven.modrinth:owo-lib:${project.owo_version}"
+    annotationProcessor "maven.modrinth:owo-lib:${project.owo_version}"
+
+    // Ручное добавление парсера Jankson (зависимость owo-lib)
+    implementation "blue.endless:jankson:1.2.3"
 }
 
 processResources {

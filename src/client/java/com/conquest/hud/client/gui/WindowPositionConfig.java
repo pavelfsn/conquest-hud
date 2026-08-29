@@ -2,24 +2,26 @@ package com.conquest.hud.client.gui;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
 public class WindowPositionConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final File FILE = FabricLoader.getInstance().getConfigDir().resolve("conquest_ui_pos.json").toFile();
-    public static Map<String, int[]> positions = new HashMap<>();
+    private static Map<String, int[]> positions = new HashMap<>();
 
     public static void load() {
         if (FILE.exists()) {
             try (FileReader reader = new FileReader(FILE)) {
-                java.lang.reflect.Type type = new com.google.gson.reflect.TypeToken<Map<String, int[]>>(){}.getType();
+                Type type = new TypeToken<Map<String, int[]>>(){}.getType();
                 positions = GSON.fromJson(reader, type);
                 if (positions == null) positions = new HashMap<>();
             } catch (IOException e) {
@@ -28,7 +30,6 @@ public class WindowPositionConfig {
         }
         positions.putIfAbsent("equipment", new int[]{400, 100});
         positions.putIfAbsent("inventory", new int[]{600, 100});
-        positions.putIfAbsent("stats", new int[]{200, 100});
     }
 
     public static void save() {
@@ -40,11 +41,16 @@ public class WindowPositionConfig {
     }
 
     public static int[] get(String window) {
-        return positions.getOrDefault(window, new int[]{100, 100});
+        int[] pos = positions.get(window);
+        if (pos == null) {
+            pos = new int[]{100, 100};
+            positions.put(window, pos);
+        }
+        return pos;
     }
 
     public static void set(String window, int x, int y) {
         positions.put(window, new int[]{x, y});
-        // Больше не сохраняем на каждый чих мыши! Сохранение происходит только при закрытии.
+        save(); // сохраняем сразу
     }
 }
