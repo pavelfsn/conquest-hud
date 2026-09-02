@@ -1,0 +1,57 @@
+{
+  "demo_mode": {
+    "enabled": true,
+    "description": "Баланс для Kickstarter демо-версии"
+  },
+  
+  "progression": {
+    "xp_multiplier": 50.0,
+    "max_level_demo": 10,
+    "xp_per_kill": 5000,
+    "xp_per_quest": 25000,
+    "xp_per_loot": 1000,
+    "time_to_max_level_minutes": 15
+  },
+  
+  "economy": {
+    "starting_rubles": 50000,
+    "starting_gold_rings": 10,
+    "price_multiplier": 1.0
+  },
+  
+  "loot": {
+    "rarity_chances": {
+      "COMMON": 0.60,
+      "UNCOMMON": 0.25,
+      "RARE": 0.10,
+      "EPIC": 0.04,
+      "LEGENDARY": 0.009,
+      "ARTIFACT": 0.001
+    },
+    "slots_per_container": {
+      "backpack_small": 20,
+      "backpack_medium": 35,
+      "backpack_large": 50,
+      "rig_small": 12,
+      "rig_medium": 18,
+      "pockets": 8
+    }
+  },
+  
+  "equipment": {
+    "durability_multiplier": 2.0,
+    "repair_cost_multiplier": 0.5
+  },
+  
+  "combat": {
+    "damage_player_multiplier": 1.0,
+    "damage_ai_multiplier": 0.7,
+    "stamina_drain_multiplier": 0.8
+  },
+  
+  "demo_commands": {
+    "setup_level_10": "/rpg add xp 225000000",
+    "setup_full_gear": "Выдать полный сет легендарной брони и оружия",
+    "reset_progress": "/rpg reset @p"
+  }
+}
