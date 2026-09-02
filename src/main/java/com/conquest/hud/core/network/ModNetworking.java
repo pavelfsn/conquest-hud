@@ -222,15 +222,17 @@ public class ModNetworking {
     public static void syncVanillaEquipment(ServerPlayerEntity player, IContainer eq) {
         int activeSlot = activeWeapons.getOrDefault(player.getUuid(), -1);
         if (activeSlot >= 0 && activeSlot < eq.getSize()) {
-            player.equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND, eq.getStack(activeSlot).copy());
+            // Убрали .copy(), теперь это жесткая ссылка на один объект в памяти
+            player.equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND, eq.getStack(activeSlot));
         } else {
             player.equipStack(net.minecraft.entity.EquipmentSlot.MAINHAND, ItemStack.EMPTY);
         }
 
-        player.equipStack(net.minecraft.entity.EquipmentSlot.HEAD, eq.getStack(EquipmentSlot.HEAD.getIndex()).copy());
-        player.equipStack(net.minecraft.entity.EquipmentSlot.CHEST, eq.getStack(EquipmentSlot.TORSO.getIndex()).copy());
-        player.equipStack(net.minecraft.entity.EquipmentSlot.LEGS, eq.getStack(EquipmentSlot.PANTS.getIndex()).copy());
-        player.equipStack(net.minecraft.entity.EquipmentSlot.FEET, eq.getStack(EquipmentSlot.BOOTS.getIndex()).copy());
+        // Также убираем .copy() у брони на будущее
+        player.equipStack(net.minecraft.entity.EquipmentSlot.HEAD, eq.getStack(EquipmentSlot.HEAD.getIndex()));
+        player.equipStack(net.minecraft.entity.EquipmentSlot.CHEST, eq.getStack(EquipmentSlot.TORSO.getIndex()));
+        player.equipStack(net.minecraft.entity.EquipmentSlot.LEGS, eq.getStack(EquipmentSlot.PANTS.getIndex()));
+        player.equipStack(net.minecraft.entity.EquipmentSlot.FEET, eq.getStack(EquipmentSlot.BOOTS.getIndex()));
     }
 
     private static IContainer getContainer(IPlayerContainers containers, int id) {

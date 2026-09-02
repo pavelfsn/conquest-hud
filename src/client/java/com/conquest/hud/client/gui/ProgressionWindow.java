@@ -40,7 +40,7 @@ public class ProgressionWindow extends ModularWindow {
     private List<Text> tooltipToDraw = null;
 
     public ProgressionWindow(String title, int defaultX, int defaultY, boolean defaultVisible) {
-        super(title, defaultX, defaultY, 560, 440, defaultVisible);
+        super(title, defaultX, defaultY, 560, 425, defaultVisible); // Уменьшена высота
     }
 
     @Override
@@ -50,6 +50,10 @@ public class ProgressionWindow extends ModularWindow {
             this.x = mouseX - dragOffsetX;
             this.y = mouseY - dragOffsetY;
         }
+
+        MinecraftClient client = MinecraftClient.getInstance();
+        this.x = Math.max(0, Math.min(this.x, client.getWindow().getScaledWidth() - this.width));
+        this.y = Math.max(0, Math.min(this.y, client.getWindow().getScaledHeight() - 20));
 
         NanoVGManager.drawRoundedRect(x, y, width, height, 0.0f, 0xF20B0A09);
         NanoVGManager.drawRoundedRect(x, y, width, 18, 0.0f, 0xF2242424);
@@ -70,7 +74,6 @@ public class ProgressionWindow extends ModularWindow {
 
         TextRenderer tr = client.textRenderer;
 
-        // ================== ВЕРХНЯЯ ПАНЕЛЬ ==================
         int headerY = y + pad + 18;
         int rightEdge = x + width - pad;
 
@@ -81,36 +84,31 @@ public class ProgressionWindow extends ModularWindow {
         int pointsX = respecX - gapX - pointsW;
 
         int barX = x + pad;
-        int barW = rightEdge - barX; // Ширина прогресс-бара - на всю длину до правого края
+        int barW = pointsX - gapX - barX; // Прогресс-бар упирается прямо перед кнопкой ОЧКИ
         int barY = headerY + 14;
 
-        // Кнопка Очков
         context.fill(pointsX, headerY - 4, pointsX + pointsW, headerY + 10, 0xFF484848);
         context.drawTextWithShadow(tr, "ОЧКИ: " + prog.getAvailablePoints(), pointsX + 8, headerY - 1, 0xFFFFFF);
 
-        // Кнопка Сброса
         boolean canRespec = (System.currentTimeMillis() - prog.getLastRespecTime() >= 86_400_000L);
         context.fill(respecX, headerY - 4, respecX + respecW, headerY + 10, canRespec ? 0xFF484848 : 0xFF222222);
         context.drawTextWithShadow(tr, "R", respecX + 8, headerY - 1, canRespec ? 0xFFFFFF : 0xFF555555);
 
-        // Текст УРОВЕНЬ
         context.drawTextWithShadow(tr, "УРОВЕНЬ", barX, headerY, 0xAAAAAA);
         context.getMatrices().push();
         context.getMatrices().scale(1.5f, 1.5f, 1.0f);
         context.drawTextWithShadow(tr, String.valueOf(prog.getLevel()), (int) ((barX + 55) / 1.5f), (int) ((headerY - 4) / 1.5f), 0xF89000);
         context.getMatrices().pop();
 
-        // Текст XP (Выровнен по левому краю кнопки ОЧКИ)
         long currentXp = prog.getXp();
         long nextLvlXp = prog.getNextLevelXp();
         long currentLvlBase = prog.getCurrentLevelBaseXp();
 
         String xpText = String.format("%,d / %,d XP", currentXp, nextLvlXp).replace(',', '\'');
         int xpTextWidth = tr.getWidth(xpText);
-        int xpTextX = pointsX - 10 - xpTextWidth;
+        int xpTextX = barX + barW - xpTextWidth;
         context.drawTextWithShadow(tr, xpText, xpTextX, headerY, 0xAAAAAA);
 
-        // Прогресс-бар
         context.fill(barX, barY, barX + barW, barY + 4, 0xFF333333);
         if (nextLvlXp > currentLvlBase) {
             float progress = (float)(currentXp - currentLvlBase) / (nextLvlXp - currentLvlBase);
@@ -120,7 +118,6 @@ public class ProgressionWindow extends ModularWindow {
             }
         }
 
-        // ================== СЕТКА СКИЛЛОВ ==================
         int gridStartX = x + pad;
         int gridStartY = barY + 16;
 
@@ -129,21 +126,18 @@ public class ProgressionWindow extends ModularWindow {
             int row = i / 4;
             int cardX = gridStartX + col * (cardWidth + gapX);
             int cardY = gridStartY + row * (cardHeight + gapY);
-
             drawCard(context, tr, cardX, cardY, mouseX, mouseY, i, prog);
         }
 
-        // ================== ХАРАКТЕРИСТИКИ ==================
-        int statY = gridStartY + 2 * (cardHeight + gapY) + 10;
+        int statY = gridStartY + 2 * (cardHeight + gapY) + 6;
         context.drawTextWithShadow(tr, "ХАРАКТЕРИСТИКИ", x + pad, statY, 0xAAAAAA);
         context.fill(x + pad, statY + 10, rightEdge, statY + 11, 0xFF444444);
 
         int col1 = x + pad;
         int col2 = x + pad + 270;
-        int step = 16;
-        int sY = statY + 18;
+        int step = 15;
+        int sY = statY + 16;
 
-        // Колонка 1
         float hpBonus = prog.getStat(2) * 10.0f;
         float hpRegen = prog.getStat(2) * 0.4f;
         float stamBonus = prog.getStat(1) * 10.0f;
@@ -154,9 +148,9 @@ public class ProgressionWindow extends ModularWindow {
         drawStatBlock(context, tr, "Выносливость", 100f, stamBonus, col1, sY + step*2, mouseX, mouseY, "Ловкость " + prog.getStat(1) + " ур.");
         drawStatBlock(context, tr, "Реген. стамины", 15f, stamRegen, col1, sY + step*3, mouseX, mouseY, "Ловкость " + prog.getStat(1) + " ур.");
 
-        // Колонка 2
         float wghtBonus = prog.getStat(0) * 3.0f;
-        drawStatBlockStr(context, tr, "Скорость бега", "100%", "", col2, sY, mouseX, mouseY, "");
+        float runSpeed = 5.6f * (1.0f + (prog.getStat(1) * 0.03f));
+        drawStatBlockStr(context, tr, "Скорость бега", String.format(java.util.Locale.US, "%.1f бл/с", runSpeed), "", col2, sY, mouseX, mouseY, "");
         drawStatBlock(context, tr, "Грузоподъемность", 40f, wghtBonus, col2, sY + step, mouseX, mouseY, "Сила " + prog.getStat(0) + " ур.");
         drawStatBlockStr(context, tr, "Шанс добычи", "x1.0", "", col2, sY + step*2, mouseX, mouseY, "");
         drawStatBlockStr(context, tr, "Кол-во добычи", "x1.0", "", col2, sY + step*3, mouseX, mouseY, "");
@@ -264,8 +258,8 @@ public class ProgressionWindow extends ModularWindow {
         if (level == 0) level = 1;
         switch (index) {
             case 0 -> list.add(String.format("Макс. вес: +%.1f кг", level * 3.0f));
-            case 1 -> { list.add("Макс. выносливость: +" + (level * 10)); list.add(String.format("Реген стамины: +%.1f ед/сек", level * 1.5f)); }
-            case 2 -> { list.add("Здоровье: +" + (level * 10)); list.add("Лечение: +" + (level * 3) + "%"); list.add("Открыт пассивный реген"); }
+            case 1 -> { list.add("Макс. выносливость: +" + (level * 10)); list.add(String.format("Скорость бега: +%d%%", level * 3)); }
+            case 2 -> { list.add("Здоровье: +" + (level * 10)); list.add("Лечение: +" + (level * 3) + "%"); }
             case 3 -> list.add("Сохранность лута: +" + (level * 2) + "%");
             case 4 -> { list.add("Скорость лута: +" + (level * 5) + "%"); list.add("Эффект медицины: +" + (level * 3) + "%"); }
             case 5 -> list.add("Смена оружия: +" + (level * 5) + "%");

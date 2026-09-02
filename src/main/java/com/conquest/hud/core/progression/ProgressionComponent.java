@@ -51,6 +51,18 @@ public class ProgressionComponent implements IProgressionComponent {
         StatsComponentRegistry.PROGRESSION.sync(provider);
     }
 
+    @Override
+    public void forceRespec() {
+        int spentPoints = 0;
+        for (int i = 0; i < stats.length; i++) { spentPoints += stats[i]; stats[i] = 0; }
+        for (int i = 0; i < weaponSkills.length; i++) { spentPoints += weaponSkills[i]; weaponSkills[i] = 0; }
+
+        availablePoints += spentPoints;
+        lastRespecTime = 0; // Сбрасываем таймер
+        StatsComponentRegistry.PROGRESSION.sync(provider);
+        com.conquest.hud.core.stats.WeightManager.updateServerWeight(provider); // Пересчитываем вес
+    }
+
     public long getRequiredXpForLevel(int targetLevel) {
         if (targetLevel <= 1) return 0L;
         if (targetLevel >= 75) return 2_500_000_000L;

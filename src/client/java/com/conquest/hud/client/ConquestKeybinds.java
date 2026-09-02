@@ -4,9 +4,11 @@ import com.conquest.hud.client.gui.ConquestInventoryScreen;
 import com.conquest.hud.client.network.ClientPacketSender;
 import com.conquest.hud.core.container.EquipmentSlot;
 import com.conquest.hud.core.network.ContainerActionType;
+import com.vicmatskiv.pointblank.client.GunClientState;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.option.Perspective;
 import net.minecraft.client.util.InputUtil;
 import org.lwjgl.glfw.GLFW;
 
@@ -19,6 +21,10 @@ public class ConquestKeybinds {
     public static KeyBinding secondaryWeaponKey;
     public static KeyBinding openProgressionKey;
     public static KeyBinding[] actionKeys = new KeyBinding[9];
+
+    private static boolean wasForcedFirstPerson = false;
+    private static boolean wasAimingLastTick = false;
+    private static int aimTransitionTicks = 0;
 
     public static void register() {
         openInvKey = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.conquest.open_inv", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_I, "category.conquest.keys"));
@@ -50,19 +56,36 @@ public class ConquestKeybinds {
                 client.player.getInventory().selectedSlot = 0;
                 while (client.options.dropKey.wasPressed()) {}
 
-                if (holsterKey.wasPressed()) {
-                    ClientPacketSender.sendAction(ContainerActionType.USE, 1, -1, -1, -1);
+                // ПЛАВНАЯ КАМЕРА (PUBG STYLE)
+                GunClientState state = GunClientState.getMainHeldState();
+                boolean isAiming = state != null && state.isAiming();
+                Perspective currentPerspective = client.options.getPerspective();
+
+                if (isAiming && !wasAimingLastTick) {
+                    aimTransitionTicks = 4; // Задержка перед входом в прицел
                 }
-                if (primaryWeaponKey.wasPressed()) {
-                    ClientPacketSender.sendAction(ContainerActionType.USE, 1, EquipmentSlot.PRIMARY_WEAPON.getIndex(), -1, -1);
-                }
-                if (secondaryWeaponKey.wasPressed()) {
-                    ClientPacketSender.sendAction(ContainerActionType.USE, 1, EquipmentSlot.SECONDARY_WEAPON.getIndex(), -1, -1);
-                }
-                for (int i = 0; i < 9; i++) {
-                    while (actionKeys[i].wasPressed()) {
-                        ClientPacketSender.sendAction(ContainerActionType.USE, 2, i, -1, -1);
+
+                if (isAiming) {
+                    if (aimTransitionTicks > 0) {
+                        aimTransitionTicks--;
+                    } else if (currentPerspective != Perspective.FIRST_PERSON) {
+                        client.options.setPerspective(Perspective.FIRST_PERSON);
+                        wasForcedFirstPerson = true;
                     }
+                } else {
+                    aimTransitionTicks = 0;
+                    if (wasForcedFirstPerson && currentPerspective == Perspective.FIRST_PERSON) {
+                        client.options.setPerspective(Perspective.THIRD_PERSON_BACK);
+                        wasForcedFirstPerson = false;
+                    }
+                }
+                wasAimingLastTick = isAiming;
+
+                if (holsterKey.wasPressed()) ClientPacketSender.sendAction(ContainerActionType.USE, 1, -1, -1, -1);
+                if (primaryWeaponKey.wasPressed()) ClientPacketSender.sendAction(ContainerActionType.USE, 1, EquipmentSlot.PRIMARY_WEAPON.getIndex(), -1, -1);
+                if (secondaryWeaponKey.wasPressed()) ClientPacketSender.sendAction(ContainerActionType.USE, 1, EquipmentSlot.SECONDARY_WEAPON.getIndex(), -1, -1);
+                for (int i = 0; i < 9; i++) {
+                    while (actionKeys[i].wasPressed()) ClientPacketSender.sendAction(ContainerActionType.USE, 2, i, -1, -1);
                 }
             }
         });

@@ -22,4 +22,6 @@ public interface IProgressionComponent extends Component, AutoSyncedComponent {
 
     long getLastRespecTime();
     boolean tryRespec();
+
+    void forceRespec();
 }

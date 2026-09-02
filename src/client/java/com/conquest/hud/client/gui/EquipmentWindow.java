@@ -42,7 +42,6 @@ public class EquipmentWindow extends ModularWindow {
         slotPositions.put(EquipmentSlot.PRIMARY_WEAPON.getIndex(), new int[]{120, 282});
         slotPositions.put(EquipmentSlot.SECONDARY_WEAPON.getIndex(), new int[]{192, 282});
 
-        // Аксессуары подняты до y=340
         slotPositions.put(EquipmentSlot.ACCESSORY_1.getIndex(), new int[]{16, 340});
         slotPositions.put(EquipmentSlot.ACCESSORY_2.getIndex(), new int[]{72, 340});
         slotPositions.put(EquipmentSlot.ACCESSORY_3.getIndex(), new int[]{128, 340});
@@ -126,10 +125,6 @@ public class EquipmentWindow extends ModularWindow {
                 int slotX = x + entry.getValue()[0];
                 int slotY = y + entry.getValue()[1];
 
-                context.fill(slotX - 2, slotY - 2, slotX + 50, slotY + 50, 0xFF000000);
-                context.drawBorder(slotX - 2, slotY - 2, 52, 52, 0xFF555555);
-                context.fill(slotX, slotY, slotX + 48, slotY + 48, 0xFF1D1D1D);
-
                 ItemStack stack = container.getStack(slotIndex);
                 boolean isCursorSource = (container.getContainerId() == cursorSourceContainer
                         && slotIndex == cursorSourceSlot
@@ -150,11 +145,13 @@ public class EquipmentWindow extends ModularWindow {
                     borderColor = 0xFFFF0000;
                 }
 
+                // Единый дизайн слотов без двойной рамки
+                context.fill(slotX, slotY, slotX + 48, slotY + 48, 0x88000000);
                 context.drawBorder(slotX, slotY, 48, 48, borderColor);
 
                 if (!stackToDraw.isEmpty()) {
                     context.getMatrices().push();
-                    context.getMatrices().translate(slotX + 8, slotY + 8, 250); // Фикс Z-индекса
+                    context.getMatrices().translate(slotX + 8, slotY + 8, 250);
                     context.getMatrices().scale(2.0f, 2.0f, 1.0f);
 
                     if (isCursorSource) {
@@ -179,7 +176,7 @@ public class EquipmentWindow extends ModularWindow {
                 }
             }
         }
-        if (activeTab == 1) { // Вкладка "Статистика"
+        if (activeTab == 2) {
             com.conquest.hud.core.progression.IProgressionComponent prog = com.conquest.hud.core.stats.StatsComponentRegistry.PROGRESSION.getNullable(client.player);
             if (prog != null) {
                 int statX = x + 20;
@@ -191,6 +188,7 @@ public class EquipmentWindow extends ModularWindow {
                 float maxStam = 100f + (prog.getStat(1) * 10f);
                 float stamRegen = 15f + (prog.getStat(1) * 1.5f);
                 float maxWght = 40f + (prog.getStat(0) * 3f);
+                float runSpeed = 5.6f * (1.0f + (prog.getStat(1) * 0.03f));
 
                 context.drawTextWithShadow(client.textRenderer, "Здоровье:", statX, statY, 0xAAAAAA);
                 context.drawTextWithShadow(client.textRenderer, String.format(java.util.Locale.US, "%.0f ед.", maxHp), statX + 180, statY, 0xFFFFFF);
@@ -205,7 +203,7 @@ public class EquipmentWindow extends ModularWindow {
                 context.drawTextWithShadow(client.textRenderer, String.format(java.util.Locale.US, "%.1f ед/сек", stamRegen), statX + 180, statY + step*3, 0xFFFFFF);
 
                 context.drawTextWithShadow(client.textRenderer, "Скорость бега:", statX, statY + step*4, 0xAAAAAA);
-                context.drawTextWithShadow(client.textRenderer, "100%", statX + 180, statY + step*4, 0xFFFFFF);
+                context.drawTextWithShadow(client.textRenderer, String.format(java.util.Locale.US, "%.1f бл/с", runSpeed), statX + 180, statY + step*4, 0xFFFFFF);
 
                 context.drawTextWithShadow(client.textRenderer, "Грузоподъемность:", statX, statY + step*5, 0xAAAAAA);
                 context.drawTextWithShadow(client.textRenderer, String.format(java.util.Locale.US, "%.1f кг", maxWght), statX + 180, statY + step*5, 0xFFFFFF);

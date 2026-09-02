@@ -12,6 +12,7 @@ import java.util.UUID;
 
 public class WeightManager {
     private static final UUID OVERWEIGHT_MODIFIER_ID = UUID.fromString("72b5f632-1111-4444-9999-abcdef123456");
+    private static final UUID AGILITY_MODIFIER_ID = UUID.fromString("83a6c721-2222-5555-8888-fedcba654321");
 
     public static float getItemWeight(ItemStack stack) {
         if (stack.isEmpty()) return 0f;
@@ -20,8 +21,8 @@ public class WeightManager {
 
     public static float getMaxWeight(PlayerEntity player) {
         IProgressionComponent progression = StatsComponentRegistry.PROGRESSION.getNullable(player);
-        float baseWeight = 40.0f; // Новая база
-        if (progression != null) baseWeight += (progression.getStat(0) * 3.0f); // До +30 кг
+        float baseWeight = 40.0f;
+        if (progression != null) baseWeight += (progression.getStat(0) * 3.0f);
         return baseWeight + BackpackManager.getBackpackWeightBonus(player);
     }
 
@@ -56,6 +57,16 @@ public class WeightManager {
         EntityAttributeInstance speedAttr = player.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED);
         if (speedAttr != null) {
             speedAttr.removeModifier(OVERWEIGHT_MODIFIER_ID);
+            speedAttr.removeModifier(AGILITY_MODIFIER_ID);
+
+            IProgressionComponent progression = StatsComponentRegistry.PROGRESSION.getNullable(player);
+            if (progression != null) {
+                int agility = progression.getStat(1);
+                if (agility > 0) {
+                    speedAttr.addTemporaryModifier(new EntityAttributeModifier(AGILITY_MODIFIER_ID, "Agility Speed", agility * 0.03, EntityAttributeModifier.Operation.MULTIPLY_TOTAL));
+                }
+            }
+
             float maxWeight = getMaxWeight(player);
             if (roundedWeight > maxWeight) {
                 float overweightRatio = (roundedWeight - maxWeight) / maxWeight;

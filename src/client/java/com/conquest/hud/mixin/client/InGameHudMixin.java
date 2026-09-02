@@ -12,13 +12,21 @@ public class InGameHudMixin {
 
     @Inject(method = "renderHotbar", at = @At("HEAD"), cancellable = true)
     private void onRenderHotbar(float tickDelta, DrawContext context, CallbackInfo ci) {
-        // Полностью отключаем ванильный хотбар
         ci.cancel();
     }
 
     @Inject(method = "renderExperienceBar", at = @At("HEAD"), cancellable = true)
     private void onRenderExperienceBar(DrawContext context, int x, CallbackInfo ci) {
-        // Отключаем ванильную полосу опыта (опционально, для чистоты UI)
+        ci.cancel();
+    }
+
+    @Inject(method = "renderStatusBars", at = @At("HEAD"), cancellable = true)
+    private void hideVanillaStatusBars(DrawContext context, CallbackInfo ci) {
+        ci.cancel();
+    }
+
+    @Inject(method = "renderStatusEffectOverlay", at = @At("HEAD"), cancellable = true)
+    private void hideVanillaBuffs(DrawContext context, CallbackInfo ci) {
         ci.cancel();
     }
 }

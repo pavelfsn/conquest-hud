@@ -23,7 +23,6 @@ public abstract class PlayerTickMixin {
         int agility = progression != null ? progression.getStat(1) : 0;
         int metabolism = progression != null ? progression.getStat(2) : 0;
 
-        // 1. Стамина
         IStaminaComponent staminaComp = StatsComponentRegistry.STAMINA.getNullable(player);
         if (staminaComp != null) {
             float currentStamina = staminaComp.getStamina();
@@ -35,9 +34,11 @@ public abstract class PlayerTickMixin {
             else if (ratio >= 1.00f) regenPenalty = 0.10f;
 
             if (player.isSprinting()) {
-                newStamina -= 0.5f; // -10/сек
+                newStamina -= 0.5f;
+                if (newStamina <= 0) {
+                    player.setSprinting(false); // Принудительно переводим на шаг
+                }
             } else {
-                // База 15/сек (0.75 за тик). Макс 30/сек (1.5 за тик)
                 float tickRegen = 0.75f + (agility * 0.075f);
                 newStamina += (tickRegen * (1.0f - regenPenalty));
             }
@@ -50,14 +51,17 @@ public abstract class PlayerTickMixin {
             }
         }
 
-        // 2. Метаболизм
         EntityAttributeInstance hpAttr = player.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH);
         if (hpAttr != null) {
-            double targetHp = 200.0 + (metabolism * 10.0); // 200 - 300
-            if (hpAttr.getBaseValue() != targetHp) hpAttr.setBaseValue(targetHp);
+            double targetHp = 200.0 + (metabolism * 10.0);
+            if (hpAttr.getBaseValue() != targetHp) {
+                hpAttr.setBaseValue(targetHp);
+                if (player.getHealth() <= 20.0f && player.isAlive()) {
+                    player.setHealth((float) targetHp);
+                }
+            }
         }
 
-        // Реген: 4 ХП/сек на 10 уровне = 0.4 ХП/сек за уровень.
         if (player.age % 20 == 0 && metabolism > 0 && player.getHealth() < player.getMaxHealth() && player.getHealth() > 0) {
             player.heal(metabolism * 0.4f);
         }

@@ -49,19 +49,12 @@ public abstract class HandledScreenMixin {
 
             int hoveredSlot = conquestInventoryWindow.getHoveredSlot(mouseX, mouseY);
             if (hoveredSlot != -1) {
-                MinecraftClient client = MinecraftClient.getInstance();
-                ItemStack hoveredStack = conquestInventoryWindow.getContainer().getStack(hoveredSlot);
+                net.minecraft.client.MinecraftClient client = net.minecraft.client.MinecraftClient.getInstance();
+                net.minecraft.item.ItemStack hoveredStack = conquestInventoryWindow.getContainer().getStack(hoveredSlot);
                 if (!hoveredStack.isEmpty() && client.player != null) {
-                    context.getMatrices().push();
-                    context.getMatrices().translate(0, 0, 500);
-                    context.drawTooltip(
-                            client.textRenderer,
-                            hoveredStack.getTooltip(client.player, client.options.advancedItemTooltips ? net.minecraft.client.item.TooltipContext.Default.ADVANCED : net.minecraft.client.item.TooltipContext.Default.BASIC),
-                            hoveredStack.getTooltipData(),
-                            mouseX,
-                            mouseY
-                    );
-                    context.getMatrices().pop();
+                    // Вызываем наш кастомный тултип вместо ванильного context.drawTooltip
+                    java.util.List<net.minecraft.text.Text> lines = hoveredStack.getTooltip(client.player, client.options.advancedItemTooltips ? net.minecraft.client.item.TooltipContext.Default.ADVANCED : net.minecraft.client.item.TooltipContext.Default.BASIC);
+                    com.conquest.hud.client.gui.ModularWindow.drawConquestTooltip(context, client.textRenderer, lines, mouseX, mouseY, client.getWindow().getScaledWidth(), client.getWindow().getScaledHeight());
                 }
             }
         }

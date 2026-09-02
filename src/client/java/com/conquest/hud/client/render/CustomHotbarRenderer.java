@@ -43,8 +43,8 @@ public class CustomHotbarRenderer implements HudRenderCallback {
             ItemStack stack = hotbar.getStack(i);
             if (!stack.isEmpty()) {
                 context.getMatrices().push();
-                context.getMatrices().translate(x, startY, 0);
-                context.getMatrices().scale(2.0f, 2.0f, 1.0f);
+                context.getMatrices().translate(x + 4, startY + 4, 0); // Фикс смещения
+                context.getMatrices().scale(1.5f, 1.5f, 1.0f); // Фикс масштаба с 2.0 на 1.5
                 context.drawItem(stack, 0, 0);
                 renderHelper.drawCustomItemOverlay(context, client.textRenderer, stack, false);
                 context.getMatrices().pop();
@@ -53,7 +53,6 @@ public class CustomHotbarRenderer implements HudRenderCallback {
             String keyName = ConquestKeybinds.actionKeys[i].getBoundKeyLocalizedText().getString();
 
             context.getMatrices().push();
-            // Слой текста поднят до Z=250, чтобы предметы его не перекрывали
             context.getMatrices().translate(x + 2, startY + slotSize - 10, 250);
             if (client.textRenderer.getWidth(keyName) > 12) {
                 context.getMatrices().scale(0.6f, 0.6f, 1.0f);

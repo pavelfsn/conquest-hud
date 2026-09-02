@@ -15,6 +15,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.HashSet;
@@ -23,6 +24,12 @@ import java.util.Set;
 @Mixin(PlayerInventory.class)
 public abstract class PlayerInventoryMixin {
     @Shadow @Final public PlayerEntity player;
+
+    // Блокируем скролл колесиком, чтобы ванильные слоты не переключались
+    @Inject(method = "scrollInHotbar", at = @At("HEAD"), cancellable = true)
+    private void disableHotbarScroll(double scrollAmount, CallbackInfo ci) {
+        ci.cancel();
+    }
 
     @Inject(method = "insertStack(Lnet/minecraft/item/ItemStack;)Z", at = @At("HEAD"), cancellable = true)
     private void onInsertStack(ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
@@ -35,7 +42,6 @@ public abstract class PlayerInventoryMixin {
         int maxSlots = BackpackManager.getMaxSlots(player);
         Set<Integer> updatedSlots = new HashSet<>();
 
-        // 1. Сначала пытаемся стакать предметы
         for (int i = 0; i < maxSlots; i++) {
             ItemStack existing = inv.getStack(i);
             if (!existing.isEmpty() && ItemStack.canCombine(existing, stack)) {
@@ -50,7 +56,6 @@ public abstract class PlayerInventoryMixin {
             }
         }
 
-        // 2. Если предмет еще остался, кладем в пустой слот
         if (!stack.isEmpty()) {
             for (int i = 0; i < maxSlots; i++) {
                 if (inv.getStack(i).isEmpty()) {
@@ -63,12 +68,10 @@ public abstract class PlayerInventoryMixin {
         }
 
         if (!updatedSlots.isEmpty()) {
-            // Отправляем точечные апдейты только для измененных слотов
             ServerPlayerEntity sPlayer = (ServerPlayerEntity) player;
             for (int slotId : updatedSlots) {
                 ContainerSlotUpdatePacket.send(sPlayer, 0, slotId, inv.getStack(slotId));
             }
-
             WeightManager.updateServerWeight(player);
             cir.setReturnValue(true);
         } else {

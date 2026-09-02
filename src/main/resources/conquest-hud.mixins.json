@@ -3,14 +3,20 @@
   "package": "com.conquest.hud.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "PlayerEntityMixin",
-    "LivingEntityMixin",
-    "PlayerTickMixin",
     "EntityMixin",
+    "HungerManagerMixin",
     "LivingEntityJumpMixin",
-    "SlotAccessor",
+    "LivingEntityMixin",
+    "PlayerEntityMixin",
+    "PlayerEntityMixin_Hunger",
     "PlayerInventoryMixin",
-    "ScreenHandlerMixin"
+    "PlayerTickMixin",
+    "ScreenHandlerMixin",
+    "ServerPlayerEntityMixin",
+    "SlotAccessor",
+    "pointblank.GunItemAmmoMixin",
+    "pointblank.GunItemStatsMixin",
+    "pointblank.LivingEntitySwingMixin"
   ],
   "injectors": {
     "defaultRequire": 1

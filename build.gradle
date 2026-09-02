@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.7.2'   // или 1.8.0, если доступно
+    id 'fabric-loom' version '1.10.5'   // или 1.8.0, если доступно
     id 'maven-publish'
 }
 
@@ -29,11 +29,14 @@ dependencies {
 
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     compileOnly files('libs/ShoulderSurfing-Fabric-1.20.1-5.0.11.jar')
+    modCompileOnly files('libs/pointblank-fabric-1.20.1-1.10.0.jar')
 
     modImplementation name: 'cardinal-components-base-5.2.2'
     modImplementation name: 'cardinal-components-entity-5.2.2'
     include name: 'cardinal-components-base-5.2.2'
     include name: 'cardinal-components-entity-5.2.2'
+    modImplementation files('libs/geckolib-fabric-1.20.1-4.8.4.jar')
+    modCompileOnly files('libs/geckolib-fabric-1.20.1-4.8.4.jar')
 // Интеграция NanoVG
     def lwjgl_version = "3.3.1"
     implementation "org.lwjgl:lwjgl-nanovg:${lwjgl_version}"

@@ -23,7 +23,6 @@
   },
   "custom": {
     "cardinal-components": [
-      "conquest:player_stats",
       "conquest:progression",
       "conquest:stamina",
       "conquest:player_weight",

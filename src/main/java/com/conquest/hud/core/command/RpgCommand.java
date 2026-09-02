@@ -69,6 +69,19 @@ public class RpgCommand {
                                     )
                             )
                     )
+                    .then(CommandManager.literal("reset")
+                            .then(CommandManager.argument("target", net.minecraft.command.argument.EntityArgumentType.player())
+                                    .executes(context -> {
+                                        ServerPlayerEntity target = net.minecraft.command.argument.EntityArgumentType.getPlayer(context, "target");
+                                        IProgressionComponent prog = StatsComponentRegistry.PROGRESSION.getNullable(target);
+                                        if (prog != null) {
+                                            prog.forceRespec();
+                                            context.getSource().sendFeedback(() -> Text.literal("Характеристики игрока " + target.getName().getString() + " сброшены!"), false);
+                                        }
+                                        return 1;
+                                    })
+                            )
+                    )
             );
         });
     }

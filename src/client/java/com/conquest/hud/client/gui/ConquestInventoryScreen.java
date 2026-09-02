@@ -2,10 +2,7 @@ package com.conquest.hud.client.gui;
 
 import com.conquest.hud.client.ConquestKeybinds;
 import com.conquest.hud.client.network.ClientPacketSender;
-import com.conquest.hud.core.container.ContainerComponentRegistry;
-import com.conquest.hud.core.container.EquipmentSlotRegistry;
-import com.conquest.hud.core.container.IContainer;
-import com.conquest.hud.core.container.IPlayerContainers;
+import com.conquest.hud.core.container.*;
 import com.conquest.hud.core.network.ContainerActionType;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
@@ -370,6 +367,15 @@ public class ConquestInventoryScreen extends Screen {
                 options.add(new ContextMenuWidget.ActionOption("Снять", () ->
                         ClientPacketSender.sendAction(ContainerActionType.UNEQUIP, containerId, slot, -1, -1)
                 ));
+            }
+            if (stack.getItem() instanceof com.vicmatskiv.pointblank.attachment.AttachmentHost) {
+                options.add(new ContextMenuWidget.ActionOption("Модификация", () -> {
+                    net.minecraft.network.PacketByteBuf buf = net.fabricmc.fabric.api.networking.v1.PacketByteBufs.create();
+                    buf.writeInt(containerId);
+                    buf.writeInt(slot);
+                    net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking.send(com.conquest.hud.ConquestPackets.OPEN_WEAPON_MOD_PACKET, buf);
+                    this.close();
+                }));
             }
 
             options.add(new ContextMenuWidget.ActionOption("Информация", () -> {

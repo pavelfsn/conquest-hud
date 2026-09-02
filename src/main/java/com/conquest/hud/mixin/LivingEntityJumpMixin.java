@@ -15,24 +15,27 @@ public abstract class LivingEntityJumpMixin {
     @Inject(method = "jump", at = @At("HEAD"), cancellable = true)
     private void onJump(CallbackInfo ci) {
         if ((Object) this instanceof PlayerEntity player) {
-            if (player.getWorld().isClient()) return;
-
             IStaminaComponent stamina = StatsComponentRegistry.STAMINA.getNullable(player);
             if (stamina == null) return;
 
             float currentWeight = WeightManager.getCurrentWeight(player);
             float maxWeight = WeightManager.getMaxWeight(player);
-            float jumpCost = 20.0f; // 5 прыжков при 100 стамины
+            float jumpCost = 20.0f;
 
             if (currentWeight > maxWeight) {
                 jumpCost += ((currentWeight - maxWeight) * 0.5f);
             }
 
+            // Блокируем прыжок на обеих сторонах (клиент и сервер)
             if (stamina.getStamina() < jumpCost) {
-                ci.cancel(); // Блокируем прыжок
+                ci.cancel();
                 return;
             }
-            stamina.setStamina(stamina.getStamina() - jumpCost);
+
+            // Тратим стамину только на сервере во избежание двойного списания
+            if (!player.getWorld().isClient()) {
+                stamina.setStamina(stamina.getStamina() - jumpCost);
+            }
         }
     }
 }

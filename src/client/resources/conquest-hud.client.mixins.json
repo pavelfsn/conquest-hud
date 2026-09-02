@@ -3,14 +3,16 @@
   "package": "com.conquest.hud.mixin.client",
   "compatibilityLevel": "JAVA_17",
   "client": [
-    "InGameHudMixin",
-    "MinecraftClientMixin",
-    "MinecraftClientCreativeMixin",
     "HandledScreenMixin",
-    "SlotMixin",
-    "KeyBindingMixin",
+    "InGameHudMixin",
     "ItemStackMixin",
-    "InGameHudMixin"
+    "KeyBindingMixin",
+    "MinecraftClientCreativeMixin",
+    "MinecraftClientMixin",
+    "PlayerListHudMixin",
+    "SlotMixin",
+    "pointblank.RecoilFeatureMixin",
+    "pointblank.AttachmentScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1
