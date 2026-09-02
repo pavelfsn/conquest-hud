@@ -1,40 +1,239 @@
-# gradle
-
-.gradle/
+```
+# Compiled and build artifacts
+*.class
+*.o
+*.obj
+*.out
 build/
-out/
-classes/
+target/
 
-# eclipse
+# Dependencies
+lib/
+libs/
+dependency-reduced-pom.xml
 
-*.launch
+# Logs and temp files
+*.log
+*.tmp
+*.swp
 
-# idea
+# Environment
+.env
+.env.local
+*.env.*
 
+# Editors
+.vscode/
 .idea/
 *.iml
-*.ipr
 *.iws
+*.ipr
 
-# vscode
+# OS specific
+.DS_Store
+Thumbs.db
 
-.settings/
-.vscode/
+# Archives
+*.zip
+*.gz
+*.tar
+*.tgz
+*.bz2
+*.xz
+*.7z
+*.rar
+*.zst
+*.lz4
+*.lzh
+*.cab
+*.arj
+*.rpm
+*.deb
+*.Z
+*.lz
+*.lzo
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar.zst
+
+# Testing
+test-results/
+coverage/
+htmlcov/
+.coverage
+
+# Package manager
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git/modules/
+.git/info/exclude
+*.sublime-project
+*.sublime-workspace
+.pytest_cache/
+.mypy_cache/
+.hypothesis/
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+hs_err_pid*
+replay_pid*
+
+# Gradle
+.gradle/
+build/
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Eclipse
+.metadata
 bin/
-.classpath
-.project
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.recommenders
 
-# macos
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+.externalToolBuilders/
+*.nb
+!.gitignore
 
-*.DS_Store
+# Visual Studio Code
+.vscode/
 
-# fabric
+# Android
+*.keystore
+*.jks
+captures/
+.externalNativeBuild
+.gradle
+.local.properties
+.settings
+.cache
+.build
+*.ap_
+*.apk
+*.apks
+*.aab
+.android
+.databinding
+.databinding.*
+build/
+output.json
+lint-results-*.xml
+intermediates/
+outputs/
+release/
+debug/
+.gradle/
+native/
+.gradle-wrapper.properties
+!gradle/wrapper/gradle-wrapper.properties
 
-run/
+# Web
+.sass-cache/
+connect.lock
+.yarn-integrity
+.yarn-metadata.json
+node_modules/
+jspm_packages/
+typings/
+flow-typed/
 
-# java
+# Bower
+bower_components/
 
-hs_err_*.log
-replay_*.log
-*.hprof
-*.jfr
+# Composer
+vendor/
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.prof
+.DS_Store
+*.zip
+*.tar.gz
+*.deb
+*.rpm
+*.pkg
+*.msi
+*.dmg
+*.iso
+*.img
+*.bin
+*.run
+*.sh
+*.bat
+*.cmd
+*.ps1
+*.com
+*.scr
+*.cpl
+*.msc
+*.msp
+*.mst
+*.inf
+*.reg
+*.bat
+*.cmd
+*.ps1
+*.vbs
+*.vbe
+*.wsf
+*.wsh
+*.msi
+*.msp
+*.mst
+*.inf
+*.reg
+```
