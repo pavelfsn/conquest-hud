@@ -5,52 +5,48 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import net.fabricmc.loader.api.FabricLoader;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.lang.reflect.Type;
+import java.io.Reader;
+import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
 public class WindowPositionConfig {
+    // Путь к файлу: .minecraft/config/conquest_windows.json
+    private static final Path CONFIG_PATH = FabricLoader.getInstance().getConfigDir().resolve("conquest_windows.json");
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final File FILE = FabricLoader.getInstance().getConfigDir().resolve("conquest_ui_pos.json").toFile();
     private static Map<String, int[]> positions = new HashMap<>();
 
+    static {
+        load(); // Автоматически загружаем файл при запуске игры
+    }
+
     public static void load() {
-        if (FILE.exists()) {
-            try (FileReader reader = new FileReader(FILE)) {
-                Type type = new TypeToken<Map<String, int[]>>(){}.getType();
-                positions = GSON.fromJson(reader, type);
+        if (Files.exists(CONFIG_PATH)) {
+            try (Reader reader = Files.newBufferedReader(CONFIG_PATH)) {
+                positions = GSON.fromJson(reader, new TypeToken<Map<String, int[]>>(){}.getType());
                 if (positions == null) positions = new HashMap<>();
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
+                System.err.println("[Conquest] Ошибка загрузки позиций окон: " + e.getMessage());
             }
         }
-        positions.putIfAbsent("equipment", new int[]{400, 100});
-        positions.putIfAbsent("inventory", new int[]{600, 100});
     }
 
     public static void save() {
-        try (FileWriter writer = new FileWriter(FILE)) {
+        try (Writer writer = Files.newBufferedWriter(CONFIG_PATH)) {
             GSON.toJson(positions, writer);
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            System.err.println("[Conquest] Ошибка сохранения позиций окон: " + e.getMessage());
         }
     }
 
-    public static int[] get(String window) {
-        int[] pos = positions.get(window);
-        if (pos == null) {
-            pos = new int[]{100, 100};
-            positions.put(window, pos);
-        }
-        return pos;
+    public static int[] get(String title) {
+        return positions.getOrDefault(title, new int[]{-1, -1});
     }
 
-    public static void set(String window, int x, int y) {
-        positions.put(window, new int[]{x, y});
-        save(); // сохраняем сразу
+    public static void set(String title, int x, int y) {
+        positions.put(title, new int[]{x, y});
+        save(); // Сразу физически сохраняем файл при отпускании окна мышью
     }
 }

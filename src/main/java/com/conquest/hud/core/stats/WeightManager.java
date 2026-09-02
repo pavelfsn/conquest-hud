@@ -1,33 +1,32 @@
 package com.conquest.hud.core.stats;
 
 import com.conquest.hud.core.config.ItemWeightConfig;
-import dev.emi.trinkets.api.TrinketComponent;
-import dev.emi.trinkets.api.TrinketsApi;
+import com.conquest.hud.core.container.ContainerComponentRegistry;
+import com.conquest.hud.core.progression.IProgressionComponent;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.player.PlayerEntity;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import net.minecraft.item.ItemStack;
 import java.util.UUID;
 
 public class WeightManager {
     private static final UUID OVERWEIGHT_MODIFIER_ID = UUID.fromString("72b5f632-1111-4444-9999-abcdef123456");
-    private static final Map<UUID, Float> clientCache = new HashMap<>();
+
+    public static float getItemWeight(ItemStack stack) {
+        if (stack.isEmpty()) return 0f;
+        return ItemWeightConfig.getWeight(stack);
+    }
 
     public static float getMaxWeight(PlayerEntity player) {
-        IPlayerStats stats = StatsComponentRegistry.PLAYER_STATS.get(player);
-        if (stats == null) return 40.0f;
-        return 40.0f + (stats.getStrength() * 2.0f);
+        IProgressionComponent progression = StatsComponentRegistry.PROGRESSION.getNullable(player);
+        float baseWeight = 40.0f; // Новая база
+        if (progression != null) baseWeight += (progression.getStat(0) * 3.0f); // До +30 кг
+        return baseWeight + BackpackManager.getBackpackWeightBonus(player);
     }
 
     public static float getCurrentWeight(PlayerEntity player) {
-        if (player.getWorld().isClient()) {
-            return clientCache.getOrDefault(player.getUuid(), 0f);
-        }
-        IPlayerWeightComponent weightComp = StatsComponentRegistry.WEIGHT.get(player);
+        IPlayerWeightComponent weightComp = StatsComponentRegistry.WEIGHT.getNullable(player);
         return weightComp != null ? weightComp.getCurrentWeight() : 0f;
     }
 
@@ -35,39 +34,21 @@ public class WeightManager {
         return getCurrentWeight(player) <= getMaxWeight(player);
     }
 
-    public static void updateClientWeight(UUID playerId, float weight) {
-        clientCache.put(playerId, weight);
-    }
-
     public static void updateServerWeight(PlayerEntity player) {
         if (player.getWorld().isClient()) return;
+        float totalWeight = 0.0f;
+        com.conquest.hud.core.container.IPlayerContainers containers = ContainerComponentRegistry.CONTAINERS.getNullable(player);
 
-        float[] totalWeight = {0.0f};
-
-        for (int i = 0; i < player.getInventory().size(); i++) {
-            var stack = player.getInventory().getStack(i);
-            if (!stack.isEmpty()) {
-                totalWeight[0] += ItemWeightConfig.getWeight(stack) * stack.getCount();
-            }
+        if (containers != null) {
+            totalWeight += containers.getInventory().getCurrentWeight();
+            totalWeight += containers.getEquipment().getCurrentWeight();
         }
 
-        Optional<TrinketComponent> trinkets = TrinketsApi.getTrinketComponent(player);
-        if (trinkets.isPresent()) {
-            trinkets.get().getAllEquipped().forEach(pair -> {
-                var stack = pair.getRight();
-                if (!stack.isEmpty()) {
-                    totalWeight[0] += ItemWeightConfig.getWeight(stack) * stack.getCount();
-                }
-            });
-        }
-
-        IPlayerWeightComponent weightComp = StatsComponentRegistry.WEIGHT.get(player);
+        IPlayerWeightComponent weightComp = StatsComponentRegistry.WEIGHT.getNullable(player);
         if (weightComp == null) return;
 
-        float roundedWeight = Math.round(totalWeight[0] * 10.0f) / 10.0f;
-        float oldWeight = weightComp.getCurrentWeight();
-
-        if (Math.abs(oldWeight - roundedWeight) > 0.001f) {
+        float roundedWeight = Math.round(totalWeight * 10.0f) / 10.0f;
+        if (Math.abs(weightComp.getCurrentWeight() - roundedWeight) > 0.001f) {
             weightComp.setCurrentWeight(roundedWeight);
             StatsComponentRegistry.WEIGHT.sync(player);
         }
@@ -79,13 +60,7 @@ public class WeightManager {
             if (roundedWeight > maxWeight) {
                 float overweightRatio = (roundedWeight - maxWeight) / maxWeight;
                 float penalty = Math.min(overweightRatio * 0.5f, 0.6f);
-                EntityAttributeModifier modifier = new EntityAttributeModifier(
-                        OVERWEIGHT_MODIFIER_ID,
-                        "Overweight Slowdown",
-                        -penalty,
-                        EntityAttributeModifier.Operation.MULTIPLY_TOTAL
-                );
-                speedAttr.addTemporaryModifier(modifier);
+                speedAttr.addTemporaryModifier(new EntityAttributeModifier(OVERWEIGHT_MODIFIER_ID, "Overweight Slowdown", -penalty, EntityAttributeModifier.Operation.MULTIPLY_TOTAL));
             }
         }
     }

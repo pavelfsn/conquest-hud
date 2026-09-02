@@ -1,0 +1,27 @@
+{
+  "replace": false,
+  "values": [
+    "#minecraft:swords",
+    "minecraft:shield",
+    "minecraft:bow",
+    "minecraft:crossbow",
+
+    "pointblank:m1911a1",
+    "pointblank:tti_viper",
+    "pointblank:p30l",
+    "pointblank:mk23",
+    "pointblank:glock17",
+    "pointblank:glock18",
+    "pointblank:m9",
+    "pointblank:deserteagle",
+    "pointblank:rhino",
+
+    "pointblank:mp5",
+    "pointblank:mp7",
+    "pointblank:ump45",
+    "pointblank:vector",
+    "pointblank:p90",
+    "pointblank:tmp",
+    "pointblank:m950"
+  ]
+}

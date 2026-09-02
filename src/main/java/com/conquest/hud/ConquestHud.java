@@ -4,6 +4,7 @@ import com.conquest.hud.core.command.RpgCommand;
 import com.conquest.hud.core.inventory.ConquestScreenHandler;
 import com.conquest.hud.core.inventory.EquipTaskManager;
 import com.conquest.hud.core.logger.ModLogger;
+import com.conquest.hud.core.network.ModNetworking;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -19,6 +20,7 @@ public class ConquestHud implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        ModNetworking.registerServerReceivers();
         ModLogger.init(); // Активация логгера
 
         ConquestScreenHandler.TYPE = Registry.register(

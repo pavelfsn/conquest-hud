@@ -1,5 +1,16 @@
 {
-  "category.conquest.keys": "Conquest HUD",
-  "key.conquest.inventory": "Inventory (Custom)",
-  "key.conquest.equipment": "Equipment"
+  "key.category.conquest.keys": "Conquest Protocol",
+  "key.conquest.open_inv": "Open Inventory",
+  "key.conquest.open_eq": "Open Equipment",
+  "key.conquest.holster": "Holster Weapon",
+  "key.conquest.slot_1": "Primary Weapon (Slot 1)",
+  "key.conquest.slot_2": "Secondary Weapon (Slot 2)",
+  "key.conquest.slot_3": "Quick Slot 3",
+  "key.conquest.slot_4": "Quick Slot 4",
+  "key.conquest.slot_5": "Quick Slot 5",
+  "key.conquest.slot_6": "Quick Slot 6",
+  "key.conquest.slot_7": "Quick Slot 7",
+  "key.conquest.slot_8": "Quick Slot 8",
+  "key.conquest.slot_9": "Quick Slot 9",
+  "key.conquest.freelook": "Свободный обзор (ALT)"
 }

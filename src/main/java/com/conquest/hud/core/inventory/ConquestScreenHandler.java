@@ -8,8 +8,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.screen.slot.Slot;
-import dev.emi.trinkets.SurvivalTrinketSlot;
-import dev.emi.trinkets.api.TrinketsApi;
 import java.util.Map;
 
 public class ConquestScreenHandler extends ScreenHandler {
@@ -39,23 +37,6 @@ public class ConquestScreenHandler extends ScreenHandler {
             });
         }
 
-        // Trinkets (40+)
-        TrinketsApi.getTrinketComponent(playerInventory.player).ifPresent(trinkets -> {
-            Map<String, dev.emi.trinkets.api.SlotGroup> groups = TrinketsApi.getEntitySlots(playerInventory.player.getType());
-            trinkets.getInventory().forEach((groupId, groupMap) -> {
-                dev.emi.trinkets.api.SlotGroup slotGroup = groups.get(groupId);
-                if (slotGroup != null) {
-                    groupMap.forEach((slotId, trinketInv) -> {
-                        dev.emi.trinkets.api.SlotType slotType = slotGroup.getSlots().get(slotId);
-                        if (slotType != null) {
-                            for (int i = 0; i < trinketInv.size(); i++) {
-                                this.addSlot(new SurvivalTrinketSlot(trinketInv, i, -9999, -9999, slotGroup, slotType, i, true));
-                            }
-                        }
-                    });
-                }
-            });
-        });
     }
 
     @Override

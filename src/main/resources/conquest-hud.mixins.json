@@ -7,9 +7,10 @@
     "LivingEntityMixin",
     "PlayerTickMixin",
     "EntityMixin",
-    "PlayerJumpMixin",
+    "LivingEntityJumpMixin",
     "SlotAccessor",
-    "PlayerInventoryMixin"
+    "PlayerInventoryMixin",
+    "ScreenHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
